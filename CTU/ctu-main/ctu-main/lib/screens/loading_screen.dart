@@ -39,7 +39,7 @@ class AppLoadingScreen extends StatelessWidget {
                       errorBuilder: (context, error, stackTrace) {
                         return Container(
                           color: Colors.grey[200],
-                          child: Icon(
+                          child: const Icon(
                             Icons.school,
                             size: 60,
                             color: AppColors.primary,
@@ -71,7 +71,7 @@ class AppLoadingScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 40),
-                SizedBox(
+                const SizedBox(
                   width: 36,
                   height: 36,
                   child: CircularProgressIndicator(

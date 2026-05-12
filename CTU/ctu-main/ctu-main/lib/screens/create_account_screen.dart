@@ -167,7 +167,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                         errorBuilder: (context, error, stackTrace) {
                           return Container(
                             color: Colors.grey[200],
-                            child: Icon(
+                            child: const Icon(
                               Icons.school,
                               size: 60,
                               color: AppColors.primary,
@@ -270,7 +270,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                   
                   // User Type Dropdown
                   DropdownButtonFormField<String>(
-                    value: _selectedUserType,
+                    initialValue: _selectedUserType,
                     decoration: _inputDecoration(
                       label: 'User Type',
                       hint: 'Select user type',
@@ -302,13 +302,13 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                   
                   // College Dropdown
                   DropdownButtonFormField<String>(
-                    value: _selectedDepartment,
+                    initialValue: _selectedDepartment,
                     decoration: _inputDecoration(
                       label: 'College',
                       hint: 'Select college',
                       icon: Icons.school_outlined,
                     ).copyWith(
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     ),
                     isExpanded: true,
                     menuMaxHeight: 200,
@@ -316,7 +316,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                       return DropdownMenuItem<String>(
                         value: department,
                         child: Container(
-                          constraints: BoxConstraints(maxWidth: 300),
+                          constraints: const BoxConstraints(maxWidth: 300),
                           child: Text(
                             department,
                             style: GoogleFonts.poppins(fontSize: 11),

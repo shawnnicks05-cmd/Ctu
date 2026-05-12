@@ -6,9 +6,11 @@ import 'package:table_calendar/table_calendar.dart';
 import '../models/event_model.dart';
 import '../services/ctu_calendar_service.dart';
 import '../services/event_adapter.dart';
+import '../services/user_preferences_service.dart';
 import '../utils/app_theme.dart';
-import '../widgets/event_card.dart';
 import '../widgets/event_details_dialog.dart';
+import 'calendar_event_card_with_registration.dart';
+import '../screens/add_event_screen.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -22,7 +24,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
   late DateTime _selectedDay;
   CalendarFormat _calendarFormat = CalendarFormat.month;
   final CTUCalendarService _calendarService = CTUCalendarService();
+  final UserPreferencesService _preferencesService = UserPreferencesService();
   List<Event> _allEvents = [];
+  List<Event> _userEvents = [];
 
   @override
   void initState() {
@@ -31,9 +35,20 @@ class _CalendarScreenState extends State<CalendarScreen> {
     _selectedDay = DateTime.now();
     _calendarService.initializeEvents();
     _allEvents = EventAdapter.fromCalendarEvents(_calendarService.events);
+    _loadUserEvents();
   }
+
+  Future<void> _loadUserEvents() async {
+    await _preferencesService.initialize();
+    final userEvents = await _preferencesService.getUserEvents();
+    setState(() {
+      _userEvents = userEvents;
+    });
+  }
+
   List<Event> _getEventsForDay(DateTime day) {
-    return _allEvents.where((event) =>
+    final allEvents = [..._allEvents, ..._userEvents];
+    return allEvents.where((event) =>
         event.date.year == day.year &&
         event.date.month == day.month &&
         event.date.day == day.day).toList();
@@ -184,7 +199,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     padding: const EdgeInsets.all(16),
                     itemCount: _selectedEvents.length,
                     itemBuilder: (context, index) {
-                      return EventListCard(
+                      return CalendarEventCardWithRegistration(
                         event: _selectedEvents[index],
                         onTap: () {
                           final calendarEvent = EventAdapter.toCalendarEvent(_selectedEvents[index]);
@@ -199,6 +214,28 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _navigateToAddEvent,
+        backgroundColor: AppColors.primary,
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
     );
   }
-}
+
+  Future<void> _navigateToAddEvent() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const AddEventScreen(),
+      ),
+    );
+    
+    if (result == true) {
+      // Refresh events when returning from add/edit screen
+      setState(() {
+        _loadUserEvents();
+      });
+    }
+  }
+
+  }

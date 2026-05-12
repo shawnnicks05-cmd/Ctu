@@ -141,7 +141,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   Center(
                     child: Padding(
-                      padding: EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.only(bottom: 16),
                       child: Container(
                         width: 120,
                         height: 120,
@@ -163,7 +163,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             errorBuilder: (context, error, stackTrace) {
                               return Container(
                                 color: Colors.grey[200],
-                                child: Icon(
+                                child: const Icon(
                                   Icons.school,
                                   size: 60,
                                   color: AppColors.primary,

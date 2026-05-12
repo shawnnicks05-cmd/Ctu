@@ -7,6 +7,7 @@ import '../models/event_model.dart';
 import '../models/notification_manager.dart';
 import '../services/ctu_calendar_service.dart';
 import '../services/event_adapter.dart';
+import '../services/user_preferences_service.dart';
 import '../utils/app_theme.dart';
 import '../widgets/event_card.dart';
 import '../widgets/event_details_dialog.dart';
@@ -597,14 +598,95 @@ class _CategoryBtn extends StatelessWidget {
   }
 }
 
-class _TodayEventCard extends StatelessWidget {
+class _TodayEventCard extends StatefulWidget {
   final Event event;
 
   const _TodayEventCard({required this.event});
 
   @override
+  State<_TodayEventCard> createState() => _TodayEventCardState();
+}
+
+class _TodayEventCardState extends State<_TodayEventCard> {
+  final UserPreferencesService _preferencesService = UserPreferencesService();
+  bool _isRegistered = false;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkRegistrationStatus();
+  }
+
+  Future<void> _checkRegistrationStatus() async {
+    await _preferencesService.initialize();
+    final isRegistered = await _preferencesService.isRegistered(widget.event.id);
+    if (mounted) {
+      setState(() {
+        _isRegistered = isRegistered;
+      });
+    }
+  }
+
+  Future<void> _toggleRegistration() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await _preferencesService.initialize();
+      
+      if (_isRegistered) {
+        await _preferencesService.unregisterEvent(widget.event.id);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Unregistered from ${widget.event.title}'),
+              backgroundColor: Colors.grey[600],
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      } else {
+        await _preferencesService.registerEvent(widget.event.id);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Registered for ${widget.event.title}'),
+              backgroundColor: AppColors.primary,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+
+      if (mounted) {
+        setState(() {
+          _isRegistered = !_isRegistered;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final color = AppColors.eventColor(event.type);
+    final color = AppColors.eventColor(widget.event.type);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -628,7 +710,7 @@ class _TodayEventCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(event.title,
+                Text(widget.event.title,
                     style: GoogleFonts.poppins(
                         fontWeight: FontWeight.w700,
                         fontSize: 15,
@@ -638,7 +720,7 @@ class _TodayEventCard extends StatelessWidget {
                   const Icon(Icons.access_time_rounded,
                       size: 13, color: AppColors.textSecondary),
                   const SizedBox(width: 3),
-                  Text('${event.time} - ${event.endTime}',
+                  Text('${widget.event.time} - ${widget.event.endTime}',
                       style: GoogleFonts.poppins(
                           fontSize: 12, color: AppColors.textSecondary)),
                 ]),
@@ -647,29 +729,65 @@ class _TodayEventCard extends StatelessWidget {
                   const Icon(Icons.location_on_rounded,
                       size: 13, color: AppColors.textSecondary),
                   const SizedBox(width: 3),
-                  Text(event.location ?? '',
+                  Text(widget.event.location ?? '',
                       style: GoogleFonts.poppins(
                           fontSize: 12, color: AppColors.textSecondary)),
                 ]),
                 const SizedBox(height: 6),
-                EventTypeBadge(type: event.type),
+                EventTypeBadge(type: widget.event.type),
               ],
             ),
           ),
           const SizedBox(width: 8),
-          ElevatedButton(
-            onPressed: () {},
-            style: ElevatedButton.styleFrom(
-              backgroundColor: color,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            ),
-            child: Text('View Details',
-                style: GoogleFonts.poppins(
-                    color: Colors.white,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600)),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (_isRegistered)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.green.withOpacity(0.3)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.check_circle, size: 12, color: Colors.green[700]),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Registered',
+                        style: GoogleFonts.poppins(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.green[700],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              const SizedBox(height: 8),
+              ElevatedButton(
+                onPressed: _isLoading ? null : _toggleRegistration,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _isRegistered ? Colors.grey[600] : color,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                ),
+                child: _isLoading
+                    ? const SizedBox(
+                        width: 12,
+                        height: 12,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      )
+                    : Text(_isRegistered ? 'Unregister' : 'Register',
+                        style: GoogleFonts.poppins(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600)),
+              ),
+            ],
           ),
         ],
       ),
@@ -890,12 +1008,12 @@ class _MiniCalendarCard extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                       color: AppColors.textPrimary,
                     ),
-                    leftChevronIcon: Icon(
+                    leftChevronIcon: const Icon(
                       Icons.chevron_left,
                       color: AppColors.primary,
                       size: 20,
                     ),
-                    rightChevronIcon: Icon(
+                    rightChevronIcon: const Icon(
                       Icons.chevron_right,
                       color: AppColors.primary,
                       size: 20,
@@ -936,7 +1054,7 @@ class _MiniCalendarCard extends StatelessWidget {
                       color: Colors.white,
                       fontWeight: FontWeight.w600,
                     ),
-                    selectedDecoration: BoxDecoration(
+                    selectedDecoration: const BoxDecoration(
                       color: AppColors.primary,
                       shape: BoxShape.circle,
                     ),
@@ -944,7 +1062,7 @@ class _MiniCalendarCard extends StatelessWidget {
                       color: AppColors.primary.withOpacity(0.3),
                       shape: BoxShape.circle,
                     ),
-                    markerDecoration: BoxDecoration(
+                    markerDecoration: const BoxDecoration(
                       color: AppColors.accent,
                       shape: BoxShape.circle,
                     ),
@@ -1128,7 +1246,7 @@ class _NotificationCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border(left: BorderSide(color: AppColors.primary, width: 3)),
+          border: const Border(left: BorderSide(color: AppColors.primary, width: 3)),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.04),
@@ -1146,7 +1264,7 @@ class _NotificationCard extends StatelessWidget {
                 color: AppColors.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.notifications_outlined,
                 color: AppColors.primary,
                 size: 20,
@@ -1192,7 +1310,7 @@ class _NotificationCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Icon(
+                const Icon(
                   Icons.chevron_right,
                   color: AppColors.primary,
                   size: 16,

@@ -206,6 +206,51 @@ class HelpSupportScreen extends StatelessWidget {
                 ),
                 ExpansionTile(
                   title: Text(
+                    'How do I add my own events?',
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+                  ),
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(
+                        'Tap the + button in the calendar tab to create personal events. Fill in the event details including title, date, time, location, and description. Choose an event type that best matches your activity.',
+                        style: GoogleFonts.poppins(fontSize: 14),
+                      ),
+                    ),
+                  ],
+                ),
+                ExpansionTile(
+                  title: Text(
+                    'What event types can I create?',
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+                  ),
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(
+                        'You can create 5 types of events:\n\n• Academic: Classes, deadlines, study sessions\n• Examination: Tests, quizzes, exams\n• Holiday: Personal holidays, breaks\n• Extracurricular: Sports, clubs, activities\n• Meeting: Study groups, appointments',
+                        style: GoogleFonts.poppins(fontSize: 14),
+                      ),
+                    ),
+                  ],
+                ),
+                ExpansionTile(
+                  title: Text(
+                    'Can I edit or delete my events?',
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+                  ),
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(
+                        'Yes! Tap on any event you created to edit or delete it. CTU official events cannot be edited, only your personal events. Look for the edit/delete options in the event details.',
+                        style: GoogleFonts.poppins(fontSize: 14),
+                      ),
+                    ),
+                  ],
+                ),
+                ExpansionTile(
+                  title: Text(
                     'Can I sync with my personal calendar?',
                     style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
                   ),
@@ -214,6 +259,51 @@ class HelpSupportScreen extends StatelessWidget {
                       padding: const EdgeInsets.all(16),
                       child: Text(
                         'Yes! Go to Settings > Auto Sync to enable calendar synchronization with Google Calendar, Apple Calendar, and other popular calendar apps.',
+                        style: GoogleFonts.poppins(fontSize: 14),
+                      ),
+                    ),
+                  ],
+                ),
+                ExpansionTile(
+                  title: Text(
+                    'Why can\'t I save my event?',
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+                  ),
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(
+                        'Make sure you fill in the event title (required field). Check that you have a valid date selected. If the issue persists, try restarting the app or clearing the app cache.',
+                        style: GoogleFonts.poppins(fontSize: 14),
+                      ),
+                    ),
+                  ],
+                ),
+                ExpansionTile(
+                  title: Text(
+                    'Where did my created events go?',
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+                  ),
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(
+                        'Your created events appear in the calendar view alongside CTU official events. They also show up in the home screen if scheduled for today. Check the calendar date where you created the event.',
+                        style: GoogleFonts.poppins(fontSize: 14),
+                      ),
+                    ),
+                  ],
+                ),
+                ExpansionTile(
+                  title: Text(
+                    'Can I create recurring events?',
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+                  ),
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(
+                        'Currently, recurring events need to be created individually. We\'re working on adding recurring event functionality in a future update.',
                         style: GoogleFonts.poppins(fontSize: 14),
                       ),
                     ),

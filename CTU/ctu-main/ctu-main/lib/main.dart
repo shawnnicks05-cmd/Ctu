@@ -9,6 +9,7 @@ import 'services/auth_provider.dart';
 import 'services/ctu_calendar_service.dart';
 import 'services/notification_service.dart';
 import 'services/autofill_service.dart';
+import 'services/user_preferences_service.dart';
 import 'utils/app_theme.dart';
 
 Future<void> main() async {
@@ -40,6 +41,7 @@ Future<void> main() async {
   CTUCalendarService().initializeEvents();
   await NotificationService().initialize();
   await AutofillService().initialize();
+  await UserPreferencesService().initialize();
 
   runApp(const MyApp());
 }
@@ -96,7 +98,7 @@ class _MyAppState extends State<MyApp> {
         title: 'CTU Smart Calendar',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.theme,
-        home: Scaffold(
+        home: const Scaffold(
           body: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,

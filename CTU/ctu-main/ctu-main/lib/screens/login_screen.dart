@@ -119,7 +119,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         errorBuilder: (context, error, stackTrace) {
                           return Container(
                             color: Colors.grey[200],
-                            child: Icon(
+                            child: const Icon(
                               Icons.school,
                               size: 60,
                               color: AppColors.primary,

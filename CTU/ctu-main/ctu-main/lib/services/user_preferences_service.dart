@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../models/calendar_event.dart';
+import '../event/event_model.dart';
 
 class UserPreferencesService {
   static final UserPreferencesService _instance = UserPreferencesService._internal();
@@ -12,6 +14,8 @@ class UserPreferencesService {
   static const String _keyNotificationsEnabled = 'notifications_enabled';
   static const String _keyEventReminders = 'event_reminders';
   static const String _keyPreferredCategories = 'preferred_categories';
+  static const String _keyRegisteredEvents = 'registered_events';
+  static const String _keyUserEvents = 'user_events';
 
   SharedPreferences? _prefs;
 
@@ -53,6 +57,123 @@ class UserPreferencesService {
     await _ensureInitialized();
     final favoritesJson = events.map((event) => jsonEncode(event.toJson())).toList();
     await _prefs?.setStringList(_keyFavoriteEvents, favoritesJson);
+  }
+
+  // Registered Events Management
+  Future<void> registerEvent(String eventId) async {
+    await _ensureInitialized();
+    final registeredEvents = await getRegisteredEvents();
+    debugPrint('Current registered events: $registeredEvents');
+    if (!registeredEvents.contains(eventId)) {
+      registeredEvents.add(eventId);
+      await _saveRegisteredEvents(registeredEvents);
+      debugPrint('Registered event: $eventId');
+      debugPrint('Updated registered events: $registeredEvents');
+    } else {
+      debugPrint('Event already registered: $eventId');
+    }
+  }
+
+  Future<void> unregisterEvent(String eventId) async {
+    await _ensureInitialized();
+    final registeredEvents = await getRegisteredEvents();
+    debugPrint('Current registered events before unregister: $registeredEvents');
+    registeredEvents.remove(eventId);
+    await _saveRegisteredEvents(registeredEvents);
+    debugPrint('Unregistered event: $eventId');
+    debugPrint('Updated registered events: $registeredEvents');
+  }
+
+  Future<List<String>> getRegisteredEvents() async {
+    await _ensureInitialized();
+    final events = _prefs?.getStringList(_keyRegisteredEvents) ?? [];
+    debugPrint('Loaded registered events: $events');
+    return events;
+  }
+
+  Future<bool> isRegistered(String eventId) async {
+    final registeredEvents = await getRegisteredEvents();
+    return registeredEvents.contains(eventId);
+  }
+
+  Future<void> _saveRegisteredEvents(List<String> eventIds) async {
+    await _ensureInitialized();
+    debugPrint('Saving registered events to storage: $eventIds');
+    await _prefs?.setStringList(_keyRegisteredEvents, eventIds);
+    debugPrint('Saved registered events successfully');
+  }
+
+  // User Events Management
+  Future<void> addUserEvent(Event event) async {
+    await _ensureInitialized();
+    final userEvents = await getUserEvents();
+    userEvents.add(event);
+    await _saveUserEvents(userEvents);
+    debugPrint('Added user event: ${event.title}');
+  }
+
+  Future<void> updateUserEvent(Event updatedEvent) async {
+    await _ensureInitialized();
+    final userEvents = await getUserEvents();
+    final index = userEvents.indexWhere((event) => event.id == updatedEvent.id);
+    if (index != -1) {
+      userEvents[index] = updatedEvent;
+      await _saveUserEvents(userEvents);
+      debugPrint('Updated user event: ${updatedEvent.title}');
+    }
+  }
+
+  Future<void> deleteUserEvent(String eventId) async {
+    await _ensureInitialized();
+    final userEvents = await getUserEvents();
+    userEvents.removeWhere((event) => event.id == eventId);
+    await _saveUserEvents(userEvents);
+    debugPrint('Deleted user event: $eventId');
+  }
+
+  Future<List<Event>> getUserEvents() async {
+    await _ensureInitialized();
+    final userEventsJson = _prefs?.getStringList(_keyUserEvents) ?? [];
+    return userEventsJson
+        .map((json) => _eventFromJson(jsonDecode(json)))
+        .toList();
+  }
+
+  Future<void> _saveUserEvents(List<Event> events) async {
+    await _ensureInitialized();
+    final userEventsJson = events.map((event) => jsonEncode(_eventToJson(event))).toList();
+    await _prefs?.setStringList(_keyUserEvents, userEventsJson);
+    debugPrint('Saved ${events.length} user events');
+  }
+
+  Map<String, dynamic> _eventToJson(Event event) {
+    return {
+      'id': event.id,
+      'title': event.title,
+      'date': event.date.millisecondsSinceEpoch,
+      'endDate': event.endDate?.millisecondsSinceEpoch,
+      'time': event.time,
+      'endTime': event.endTime,
+      'location': event.location,
+      'type': event.type.name,
+      'description': event.description,
+      'isAllDay': event.isAllDay,
+    };
+  }
+
+  Event _eventFromJson(Map<String, dynamic> json) {
+    return Event(
+      id: json['id'] ?? '',
+      title: json['title'] ?? '',
+      date: DateTime.fromMillisecondsSinceEpoch(json['date'] ?? 0),
+      endDate: json['endDate'] != null ? DateTime.fromMillisecondsSinceEpoch(json['endDate']) : null,
+      time: json['time'],
+      endTime: json['endTime'],
+      location: json['location'],
+      type: EventType.values.firstWhere((type) => type.name == json['type'], orElse: () => EventType.academic),
+      description: json['description'],
+      isAllDay: json['isAllDay'] ?? false,
+    );
   }
 
   // User Campus Management
@@ -126,6 +247,9 @@ class UserPreferencesService {
   }
 
   Future<void> _ensureInitialized() async {
-    _prefs ??= await SharedPreferences.getInstance();
+    if (_prefs == null) {
+      _prefs = await SharedPreferences.getInstance();
+      debugPrint('SharedPreferences initialized for registered events');
+    }
   }
 }

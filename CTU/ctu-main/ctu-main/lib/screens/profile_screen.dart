@@ -11,6 +11,7 @@ import '../models/user_model.dart';
 import '../utils/app_theme.dart';
 import 'settings_screen.dart';
 import 'help_support_screen.dart';
+import 'registered_events_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -297,7 +298,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   shape: BoxShape.circle,
                                   border: Border.all(color: Colors.white, width: 2),
                                 ),
-                                child: Icon(
+                                child: const Icon(
                                   Icons.camera_alt,
                                   size: 12,
                                   color: Colors.white,
@@ -426,6 +427,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   child: Column(
                     children: [
+                      _MenuTile(
+                        icon: Icons.event_available_rounded,
+                        label: 'My Registered Events',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const RegisteredEventsScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                      const Divider(height: 1),
                       _MenuTile(
                         icon: Icons.settings_outlined,
                         label: 'Settings',
