@@ -32,7 +32,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     _calendarService.initializeEvents();
     _allEvents = EventAdapter.fromCalendarEvents(_calendarService.events);
   }
-
+//nawsh
   List<Event> _getEventsForDay(DateTime day) {
     return _allEvents.where((event) =>
         event.date.year == day.year &&

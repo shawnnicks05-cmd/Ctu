@@ -3,8 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../services/auth_provider.dart';
+import '../services/autofill_service.dart';
 import '../utils/app_theme.dart';
-import '../widgets/smart_school_brand_logo.dart';
 import 'create_account_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -19,12 +19,40 @@ class _LoginScreenState extends State<LoginScreen> {
   final _email = TextEditingController();
   final _password = TextEditingController();
   bool _obscure = true;
+  final AutofillService _autofillService = AutofillService();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedCredentials();
+  }
 
   @override
   void dispose() {
     _email.dispose();
     _password.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadSavedCredentials() async {
+    try {
+      final savedEmail = await _autofillService.getSavedEmail();
+      final savedPassword = await _autofillService.getSavedPassword();
+      
+      if (savedEmail != null && savedEmail.isNotEmpty) {
+        setState(() {
+          _email.text = savedEmail;
+        });
+      }
+      
+      if (savedPassword != null && savedPassword.isNotEmpty) {
+        setState(() {
+          _password.text = savedPassword;
+        });
+      }
+    } catch (e) {
+      print('Error loading saved credentials: $e');
+    }
   }
 
   Future<void> _submit() async {
@@ -46,6 +74,12 @@ class _LoginScreenState extends State<LoginScreen> {
           backgroundColor: Colors.red,
         ),
       );
+    } else {
+      // Save credentials on successful login
+      await _autofillService.saveUserInfo(
+        email: _email.text.trim(),
+        password: _password.text,
+      );
     }
   }
 
@@ -63,19 +97,40 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
+                  // Logo
+                  Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
                       child: Image.asset(
-                        'assets/images/smart_school_calendar_logo.png',
-                        height: 240,
+                        'assets/logo.png',
                         fit: BoxFit.contain,
-                        filterQuality: FilterQuality.high,
-                        errorBuilder: (_, __, ___) =>
-                            const SmartSchoolBrandLogo(maxWidth: 300),
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: Colors.grey[200],
+                            child: Icon(
+                              Icons.school,
+                              size: 60,
+                              color: AppColors.primary,
+                            ),
+                          );
+                        },
                       ),
                     ),
                   ),
+                  const SizedBox(height: 24),
+                  
                   Text(
                     'Sign in with your CTU email and password',
                     textAlign: TextAlign.center,
@@ -215,38 +270,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           color: AppColors.primary,
                         ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.divider),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Demo accounts',
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 13,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          '• kassandra.canama@ctu.edu.ph / Ctu2024!\n'
-                          '• student@ctu.edu.ph / student123',
-                          style: GoogleFonts.poppins(
-                            fontSize: 11,
-                            height: 1.45,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ],
                     ),
                   ),
                 ],

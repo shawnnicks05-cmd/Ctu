@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../services/auth_provider.dart';
+import '../services/firestore_service.dart';
+import '../models/user_model.dart';
 import '../utils/app_theme.dart';
 import 'registered_events_screen.dart';
 import 'saved_schedules_screen.dart';
@@ -11,8 +13,42 @@ import 'settings_screen.dart';
 import 'help_support_screen.dart';
 import 'notification_settings_screen.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  final FirestoreService _firestoreService = FirestoreService();
+  UserModel? _userModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final user = authProvider.user;
+
+      if (user != null && user.email != null) {
+        final userData = await _firestoreService.getUserByEmail(user.email!);
+        setState(() {
+          _userModel = userData;
+        });
+      } else {
+        setState(() {
+        });
+      }
+    } catch (e) {
+      setState(() {
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +84,7 @@ class ProfileScreen extends StatelessWidget {
                             color: const Color(0xFFD4AF37), width: 2),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.15),
+                            color: Colors.black.withValues(alpha: 0.15),
                             blurRadius: 8,
                           ),
                         ],
@@ -66,7 +102,7 @@ class ProfileScreen extends StatelessWidget {
                                     child: Icon(
                                       Icons.person_rounded,
                                       size: 42,
-                                      color: AppColors.primary.withOpacity(0.85),
+                                      color: AppColors.primary.withValues(alpha: 0.85),
                                     ),
                                   );
                                 },
@@ -76,7 +112,7 @@ class ProfileScreen extends StatelessWidget {
                                 child: Icon(
                                   Icons.person_rounded,
                                   size: 42,
-                                  color: AppColors.primary.withOpacity(0.85),
+                                  color: AppColors.primary.withValues(alpha: 0.85),
                                 ),
                               ),
                       ),
@@ -98,7 +134,7 @@ class ProfileScreen extends StatelessWidget {
                           Text(
                             user?.email ?? 'student@ctu.edu.ph',
                             style: GoogleFonts.poppins(
-                              color: Colors.white.withOpacity(0.92),
+                              color: Colors.white.withValues(alpha: 0.92),
                               fontSize: 13,
                               fontWeight: FontWeight.w500,
                             ),
@@ -107,7 +143,7 @@ class ProfileScreen extends StatelessWidget {
                           Text(
                             'Verified User',
                             style: GoogleFonts.poppins(
-                              color: Colors.white.withOpacity(0.92),
+                              color: Colors.white.withValues(alpha: 0.92),
                               fontSize: 13,
                             ),
                           ),
@@ -123,70 +159,75 @@ class ProfileScreen extends StatelessWidget {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
               children: [
-                Text(
-                  'My Information',
-                  style: GoogleFonts.poppins(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
+                                
+                // Personal Information Table
+                if (_userModel != null) ...[
+                  Text(
+                    'Personal Information',
+                    style: GoogleFonts.poppins(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 10),
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        _InfoRow(
+                          label: 'Full Name',
+                          value: _userModel!.fullName,
+                        ),
+                        Divider(height: 20, color: Colors.grey.shade200),
+                        _InfoRow(
+                          label: 'User Type',
+                          value: _userModel!.userType ?? 'Not specified',
+                        ),
+                        Divider(height: 20, color: Colors.grey.shade200),
+                        _InfoRow(
+                          label: 'Phone Number',
+                          value: _userModel!.phoneNumber,
+                        ),
+                        Divider(height: 20, color: Colors.grey.shade200),
+                        _InfoRow(
+                          label: 'Department',
+                          value: _userModel!.department,
+                        ),
+                        Divider(height: 20, color: Colors.grey.shade200),
+                        _InfoRow(
+                          label: 'Year Level',
+                          value: _userModel!.yearLevel,
+                        ),
+                        Divider(height: 20, color: Colors.grey.shade200),
+                        _InfoRow(
+                          label: 'Section',
+                          value: _userModel!.section,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                ],
+                
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(14),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      _InfoRow(
-                        label: 'Email',
-                        value: user?.email ?? 'Not available',
-                      ),
-                      Divider(height: 20, color: Colors.grey.shade200),
-                      _InfoRow(
-                        label: 'User ID',
-                        value: user?.uid.substring(0, 8) ?? 'Not available',
-                      ),
-                      Divider(height: 20, color: Colors.grey.shade200),
-                      _InfoRow(
-                        label: 'Email Verified',
-                        value: user?.emailVerified == true ? 'Yes' : 'No',
-                      ),
-                      Divider(height: 20, color: Colors.grey.shade200),
-                      _InfoRow(
-                        label: 'Account Created',
-                        value: user?.metadata.creationTime != null 
-                            ? '${user!.metadata.creationTime!.day}/${user.metadata.creationTime!.month}/${user.metadata.creationTime!.year}'
-                            : 'Not available',
-                      ),
-                      Divider(height: 20, color: Colors.grey.shade200),
-                      _InfoRow(
-                        label: 'Last Sign In',
-                        value: user?.metadata.lastSignInTime != null 
-                            ? '${user!.metadata.lastSignInTime!.day}/${user.metadata.lastSignInTime!.month}/${user.metadata.lastSignInTime!.year}'
-                            : 'Not available',
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(14),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Colors.black.withValues(alpha: 0.05),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -291,7 +332,7 @@ class ProfileScreen extends StatelessWidget {
                                 ),
                                 TextButton(
                                   onPressed: () => Navigator.of(context).pop(true),
-                                  child: Text(
+                                  child: const Text(
                                     'Logout',
                                     style: TextStyle(color: AppColors.primary),
                                   ),

@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../services/auth_provider.dart';
+import '../services/autofill_service.dart';
 import '../utils/app_theme.dart';
 
 class CreateAccountScreen extends StatefulWidget {
@@ -17,13 +18,38 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
 
   final _email = TextEditingController();
   final _password = TextEditingController();
+  final _fullName = TextEditingController();
+  final _phoneNumber = TextEditingController();
+  final _department = TextEditingController();
+  final _yearLevel = TextEditingController();
+  final _section = TextEditingController();
 
   bool _obscure = true;
+  String? _selectedUserType;
+  final AutofillService _autofillService = AutofillService();
+  
+  // List of departments for dropdown
+  final List<String> _departments = [
+    'Bachelor of Science in Electronics and Communication Engineering',
+    'Bachelor of Science in Civil Engineering',
+    'Bachelor of Science in Electrical Engineering',
+    'Bachelor of Science in Mechanical Engineering',
+    'Bachelor of Science in Aerospace Engineering',
+    'Bachelor of Science in Computer Engineering',
+    'Bachelor of Science in Industrial Engineering',
+  ];
+  
+  String? _selectedDepartment;
 
   @override
   void dispose() {
     _email.dispose();
     _password.dispose();
+    _fullName.dispose();
+    _phoneNumber.dispose();
+    _department.dispose();
+    _yearLevel.dispose();
+    _section.dispose();
     super.dispose();
   }
 
@@ -32,7 +58,16 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     
-    await authProvider.signUp(_email.text.trim(), _password.text);
+    await authProvider.signUpWithEmailAndDetails(
+      email: _email.text.trim(),
+      password: _password.text,
+      fullName: _fullName.text.trim(),
+      phoneNumber: _phoneNumber.text.trim(),
+      department: _selectedDepartment ?? '',
+      yearLevel: _yearLevel.text.trim(),
+      section: _section.text.trim(),
+      userType: _selectedUserType ?? '',
+    );
 
     if (!mounted) return;
 
@@ -47,10 +82,16 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
         ),
       );
     } else {
+      // Save credentials for auto-fill on login screen
+      await _autofillService.saveUserInfo(
+        email: _email.text.trim(),
+        password: _password.text,
+      );
+      
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Account created successfully! Please check your email to verify your account.',
+            'Account created successfully!',
             style: GoogleFonts.poppins(),
           ),
           backgroundColor: AppColors.primary,
@@ -103,6 +144,41 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
               key: _formKey,
               child: Column(
                 children: [
+                  // Logo
+                  Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Image.asset(
+                        'assets/logo.png',
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: Colors.grey[200],
+                            child: Icon(
+                              Icons.school,
+                              size: 60,
+                              color: AppColors.primary,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  
+                  // Email Field
                   TextFormField(
                     controller: _email,
                     keyboardType: TextInputType.emailAddress,
@@ -124,6 +200,8 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                     },
                   ),
                   const SizedBox(height: 16),
+                  
+                  // Password Field
                   TextFormField(
                     controller: _password,
                     obscureText: _obscure,
@@ -148,6 +226,147 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                     validator: (v) {
                       if (v == null || v.length < 6) {
                         return 'Minimum 6 characters';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // Full Name Field
+                  TextFormField(
+                    controller: _fullName,
+                    decoration: _inputDecoration(
+                      label: 'Full Name',
+                      hint: 'Enter your full name',
+                      icon: Icons.person_outline,
+                    ),
+                    validator: (v) {
+                      if (v == null || v.isEmpty) {
+                        return 'Enter your full name';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // Phone Number Field
+                  TextFormField(
+                    controller: _phoneNumber,
+                    keyboardType: TextInputType.phone,
+                    decoration: _inputDecoration(
+                      label: 'Phone Number',
+                      hint: 'Enter your phone number',
+                      icon: Icons.phone_outlined,
+                    ),
+                    validator: (v) {
+                      if (v == null || v.isEmpty) {
+                        return 'Enter your phone number';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // User Type Dropdown
+                  DropdownButtonFormField<String>(
+                    value: _selectedUserType,
+                    decoration: _inputDecoration(
+                      label: 'User Type',
+                      hint: 'Select user type',
+                      icon: Icons.person_outline,
+                    ),
+                    items: const [
+                      DropdownMenuItem<String>(
+                        value: 'Student',
+                        child: Text('Student'),
+                      ),
+                      DropdownMenuItem<String>(
+                        value: 'Professor',
+                        child: Text('Professor'),
+                      ),
+                    ],
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        _selectedUserType = newValue;
+                      });
+                    },
+                    validator: (v) {
+                      if (v == null || v.isEmpty) {
+                        return 'Please select your user type';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // Department Dropdown
+                  DropdownButtonFormField<String>(
+                    value: _selectedDepartment,
+                    decoration: _inputDecoration(
+                      label: 'Department',
+                      hint: 'Select department',
+                      icon: Icons.school_outlined,
+                    ).copyWith(
+                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    ),
+                    isExpanded: true,
+                    menuMaxHeight: 200,
+                    items: _departments.map((String department) {
+                      return DropdownMenuItem<String>(
+                        value: department,
+                        child: Container(
+                          constraints: BoxConstraints(maxWidth: 300),
+                          child: Text(
+                            department,
+                            style: GoogleFonts.poppins(fontSize: 11),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        _selectedDepartment = newValue;
+                      });
+                    },
+                    validator: (v) {
+                      if (v == null || v.isEmpty) {
+                        return 'Please select your department';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // Year Level Field
+                  TextFormField(
+                    controller: _yearLevel,
+                    decoration: _inputDecoration(
+                      label: 'Year Level',
+                      hint: 'e.g., 1st Year, 2nd Year',
+                      icon: Icons.trending_up_outlined,
+                    ),
+                    validator: (v) {
+                      if (v == null || v.isEmpty) {
+                        return 'Enter your year level';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // Section Field
+                  TextFormField(
+                    controller: _section,
+                    decoration: _inputDecoration(
+                      label: 'Section',
+                      hint: 'e.g., A, B, C',
+                      icon: Icons.group_outlined,
+                    ),
+                    validator: (v) {
+                      if (v == null || v.isEmpty) {
+                        return 'Enter your section';
                       }
                       return null;
                     },

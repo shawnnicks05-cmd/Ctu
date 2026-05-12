@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.ctu_ssc"
+    namespace = "com.ctu.ssc"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -22,7 +22,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.ctu_ssc"
+        applicationId = "com.ctu.ssc"
 
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion

@@ -8,6 +8,7 @@ class AutofillService {
   AutofillService._internal();
 
   static const String _keySavedEmail = 'saved_email';
+  static const String _keySavedPassword = 'saved_password';
   static const String _keySavedFullName = 'saved_full_name';
   static const String _keySavedStudentId = 'saved_student_id';
   static const String _keySavedCourse = 'saved_course';
@@ -15,13 +16,24 @@ class AutofillService {
   static const String _keySavedCampus = 'saved_campus';
 
   SharedPreferences? _prefs;
+  bool _isInitialized = false;
 
   Future<void> initialize() async {
-    _prefs ??= await SharedPreferences.getInstance();
+    if (_isInitialized) return; // Already initialized
+    
+    try {
+      _prefs = await SharedPreferences.getInstance();
+      _isInitialized = true;
+    } catch (e) {
+      // Log error but don't throw - allow app to continue
+      print('AutofillService initialization error: $e');
+      _isInitialized = false;
+    }
   }
 
   Future<void> saveUserInfo({
     String? email,
+    String? password,
     String? fullName,
     String? studentId,
     String? course,
@@ -32,6 +44,10 @@ class AutofillService {
     
     if (email != null && email.isNotEmpty) {
       await _prefs?.setString(_keySavedEmail, email);
+    }
+    
+    if (password != null && password.isNotEmpty) {
+      await _prefs?.setString(_keySavedPassword, password);
     }
     
     if (fullName != null && fullName.isNotEmpty) {
@@ -60,6 +76,7 @@ class AutofillService {
     
     return {
       'email': _prefs?.getString(_keySavedEmail),
+      'password': _prefs?.getString(_keySavedPassword),
       'fullName': _prefs?.getString(_keySavedFullName),
       'studentId': _prefs?.getString(_keySavedStudentId),
       'course': _prefs?.getString(_keySavedCourse),
@@ -71,6 +88,11 @@ class AutofillService {
   Future<String?> getSavedEmail() async {
     await _ensureInitialized();
     return _prefs?.getString(_keySavedEmail);
+  }
+
+  Future<String?> getSavedPassword() async {
+    await _ensureInitialized();
+    return _prefs?.getString(_keySavedPassword);
   }
 
   Future<String?> getSavedFullName() async {
@@ -101,6 +123,7 @@ class AutofillService {
   Future<void> clearSavedInfo() async {
     await _ensureInitialized();
     await _prefs?.remove(_keySavedEmail);
+    await _prefs?.remove(_keySavedPassword);
     await _prefs?.remove(_keySavedFullName);
     await _prefs?.remove(_keySavedStudentId);
     await _prefs?.remove(_keySavedCourse);
@@ -109,7 +132,9 @@ class AutofillService {
   }
 
   Future<void> _ensureInitialized() async {
-    _prefs ??= await SharedPreferences.getInstance();
+    if (!_isInitialized) {
+      await initialize();
+    }
   }
 
   // Get device-specific suggestions
