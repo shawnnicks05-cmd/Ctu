@@ -1,11 +1,11 @@
 {
-    "name": "ctu_ssc",
-    "short_name": "ctu_ssc",
+    "name": "ctu_smartsched",
+    "short_name": "ctu_smartsched",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "CTU SmartSched - Student Smart Calendar System.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

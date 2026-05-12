@@ -235,6 +235,9 @@ class NotificationService {
         return const Color(0xFF009688); // Teal
       case EventCategory.administrative:
         return const Color(0xFF607D8B); // Grey
+      case EventCategory.enrollment:
+        // TODO: Handle this case.
+        throw UnimplementedError();
     }
   }
 

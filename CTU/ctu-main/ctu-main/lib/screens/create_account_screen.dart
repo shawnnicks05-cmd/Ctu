@@ -28,15 +28,16 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   String? _selectedUserType;
   final AutofillService _autofillService = AutofillService();
   
-  // List of departments for dropdown
+  // List of colleges for dropdown
   final List<String> _departments = [
-    'Bachelor of Science in Electronics and Communication Engineering',
-    'Bachelor of Science in Civil Engineering',
-    'Bachelor of Science in Electrical Engineering',
-    'Bachelor of Science in Mechanical Engineering',
-    'Bachelor of Science in Aerospace Engineering',
-    'Bachelor of Science in Computer Engineering',
-    'Bachelor of Science in Industrial Engineering',
+    'College of Engineering',
+    'College of Arts and Sciences',
+    'College of Education',
+    'College of Technology',
+    'College of Agriculture and Forestry',
+    'College of Maritime Education',
+    'College of Nursing',
+    'College of Business and Management',
   ];
   
   String? _selectedDepartment;
@@ -299,12 +300,12 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                   ),
                   const SizedBox(height: 16),
                   
-                  // Department Dropdown
+                  // College Dropdown
                   DropdownButtonFormField<String>(
                     value: _selectedDepartment,
                     decoration: _inputDecoration(
-                      label: 'Department',
-                      hint: 'Select department',
+                      label: 'College',
+                      hint: 'Select college',
                       icon: Icons.school_outlined,
                     ).copyWith(
                       contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -332,7 +333,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                     },
                     validator: (v) {
                       if (v == null || v.isEmpty) {
-                        return 'Please select your department';
+                        return 'Please select your college';
                       }
                       return null;
                     },

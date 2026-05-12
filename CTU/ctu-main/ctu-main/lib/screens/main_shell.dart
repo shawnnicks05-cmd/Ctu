@@ -7,6 +7,8 @@ import 'notifications_screen.dart';
 import 'profile_screen.dart';
 import 'search_screen.dart';
 import '../event/calendar_screen.dart';
+import '../services/ctu_calendar_service.dart';
+import '../models/notification_manager.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -17,11 +19,32 @@ class MainShell extends StatefulWidget {
 
 class _MainShellState extends State<MainShell> {
   int _index = 0;
+  final CTUCalendarService _calendarService = CTUCalendarService();
+  final NotificationManager _notificationManager = NotificationManager();
+
+  @override
+  void initState() {
+    super.initState();
+    _calendarService.initializeEvents();
+    _notificationManager.initializeEvents();
+    _notificationManager.addListener(_onNotificationChanged);
+  }
+
+  @override
+  void dispose() {
+    _notificationManager.removeListener(_onNotificationChanged);
+    super.dispose();
+  }
+
+  void _onNotificationChanged() {
+    setState(() {});
+  }
 
   void _goToTab(int i) {
     if (i == _index) return;
     setState(() => _index = i);
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -97,7 +120,7 @@ class _MainShellState extends State<MainShell> {
                       selectedIcon: Icons.notifications_rounded,
                       selected: _index == 3,
                       onTap: () => _goToTab(3),
-                      badgeCount: 3,
+                      badgeCount: _notificationManager.unreadCount,
                     ),
                     _NavItem(
                       label: 'Profile',

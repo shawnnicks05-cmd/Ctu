@@ -21,7 +21,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   @override
   void initState() {
     super.initState();
-    _notificationManager.initializeEvents();
     _notificationManager.addListener(_onNotificationChanged);
   }
 
@@ -102,15 +101,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                 _FilterChip(
                                   label: 'All',
                                   selected: _filter == _NotifFilter.all,
-                                  onTap: () =>
-                                      setState(() => _filter = _NotifFilter.all),
+                                  onTap: () => setState(
+                                      () => _filter = _NotifFilter.all),
                                 ),
                                 const SizedBox(width: 10),
                                 _FilterChip(
                                   label: 'Unread',
                                   selected: _filter == _NotifFilter.unread,
-                                  onTap: () =>
-                                      setState(() => _filter = _NotifFilter.unread),
+                                  onTap: () => setState(
+                                      () => _filter = _NotifFilter.unread),
                                 ),
                                 const SizedBox(width: 10),
                                 _FilterChip(
@@ -125,15 +124,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         ),
                         TextButton.icon(
                           onPressed: () => _notificationManager.markAllAsRead(),
-                          icon: const Icon(Icons.done_all, size: 18, color: Colors.white),
+                          icon: const Icon(Icons.done_all,
+                              size: 18, color: Colors.white),
                           label: Text('Mark All Read',
                               style: GoogleFonts.poppins(
                                   color: Colors.white,
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600)),
                           style: TextButton.styleFrom(
-                            backgroundColor: Colors.white.withValues(alpha: 0.2),
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            backgroundColor:
+                                Colors.white.withValues(alpha: 0.2),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(20),
                             ),

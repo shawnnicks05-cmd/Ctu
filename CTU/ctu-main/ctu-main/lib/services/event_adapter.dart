@@ -25,6 +25,9 @@ class EventAdapter {
       case EventCategory.administrative:
         eventType = EventType.meeting;
         break;
+      case EventCategory.enrollment:
+        eventType = EventType.academic;
+        break;
       }
 
     return Event(

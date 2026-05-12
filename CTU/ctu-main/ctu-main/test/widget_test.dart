@@ -8,8 +8,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:ssc/main.dart';
-import 'package:ssc/screens/loading_screen.dart';
+import 'package:ctu_smartsched/main.dart';
+import 'package:ctu_smartsched/screens/loading_screen.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -18,23 +18,25 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  testWidgets('App shows sign-in when not logged in', (WidgetTester tester) async {
+  testWidgets('App shows sign-in when not logged in',
+      (WidgetTester tester) async {
     // Pump the widget without waiting for settle to avoid timeout
     await tester.pumpWidget(const MyApp());
     await tester.pump();
-    
+
     // Give a short time for initialization
     await tester.pump(const Duration(milliseconds: 500));
-    
+
     // Check if we can find the loading screen or login screen
-    final hasLoadingScreen = find.byType(AppLoadingScreen).evaluate().isNotEmpty;
+    final hasLoadingScreen =
+        find.byType(AppLoadingScreen).evaluate().isNotEmpty;
     final hasSignIn = find.text('Sign In').evaluate().isNotEmpty;
-    
+
     // If still on loading screen, pump a bit more
     if (hasLoadingScreen && !hasSignIn) {
       await tester.pump(const Duration(milliseconds: 1000));
     }
-    
+
     // Now check for login screen elements
     expect(find.text('Sign In'), findsOneWidget);
     expect(find.textContaining('Sign in with your CTU email'), findsOneWidget);

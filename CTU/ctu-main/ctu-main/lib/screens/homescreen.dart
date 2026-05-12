@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../models/event_model.dart';
+import '../models/notification_manager.dart';
 import '../services/ctu_calendar_service.dart';
 import '../services/event_adapter.dart';
 import '../utils/app_theme.dart';
@@ -23,6 +24,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final DateTime _today = DateTime.now();
   final CTUCalendarService _ctuCalendarService = CTUCalendarService();
+  final NotificationManager _notificationManager = NotificationManager();
   List<Event> _allEvents = [];
   DateTime _selectedDay = DateTime.now();
   String? _selectedCategory;
@@ -34,6 +36,18 @@ class _HomeScreenState extends State<HomeScreen> {
     _selectedDay = _today;
     _ctuCalendarService.initializeEvents();
     _allEvents = EventAdapter.fromCalendarEvents(_ctuCalendarService.events);
+    _notificationManager.initializeEvents();
+    _notificationManager.addListener(_onNotificationChanged);
+  }
+
+  @override
+  void dispose() {
+    _notificationManager.removeListener(_onNotificationChanged);
+    super.dispose();
+  }
+
+  void _onNotificationChanged() {
+    setState(() {});
   }
 
   List<Event> get todaysEvents {
@@ -84,6 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }).toList();
   }
+
 
   void _filterByCategory(String? category) {
     setState(() {
@@ -185,7 +200,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                     shape: BoxShape.circle,
                                   ),
                                   child: Center(
-                                    child: Text('3',
+                                    child: Text(
+                                        _notificationManager.unreadCount > 9 
+                                            ? '9+' 
+                                            : '${_notificationManager.unreadCount}',
                                         style: GoogleFonts.poppins(
                                             color: AppColors.primary,
                                             fontSize: 9,

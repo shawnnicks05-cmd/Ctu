@@ -1,17 +1,16 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../services/auth_provider.dart';
 import '../services/firestore_service.dart';
 import '../models/user_model.dart';
 import '../utils/app_theme.dart';
-import 'registered_events_screen.dart';
-import 'saved_schedules_screen.dart';
-import 'calendar_preferences_screen.dart';
 import 'settings_screen.dart';
 import 'help_support_screen.dart';
-import 'notification_settings_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -22,7 +21,9 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final FirestoreService _firestoreService = FirestoreService();
+  final ImagePicker _imagePicker = ImagePicker();
   UserModel? _userModel;
+  String? _localImagePath;
 
   @override
   void initState() {
@@ -50,6 +51,136 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      // Check if running on web
+      if (kIsWeb) {
+        // For web, use different approach
+        final XFile? pickedFile = await _imagePicker.pickImage(
+          source: source,
+          maxWidth: 800,
+          maxHeight: 800,
+          imageQuality: 85,
+        );
+
+        if (pickedFile != null) {
+          setState(() {
+            _localImagePath = pickedFile.path;
+          });
+          
+          // Show success message
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Profile picture updated!',
+                  style: GoogleFonts.poppins(),
+                ),
+                backgroundColor: AppColors.primary,
+              ),
+            );
+          }
+        }
+      } else {
+        // For mobile platforms
+        final XFile? pickedFile = await _imagePicker.pickImage(
+          source: source,
+          maxWidth: 800,
+          maxHeight: 800,
+          imageQuality: 85,
+        );
+
+        if (pickedFile != null) {
+          setState(() {
+            _localImagePath = pickedFile.path;
+          });
+          
+          // Show success message
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Profile picture updated!',
+                  style: GoogleFonts.poppins(),
+                ),
+                backgroundColor: AppColors.primary,
+              ),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Error picking image: $e',
+              style: GoogleFonts.poppins(),
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showImagePickerOptions() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  'Update Profile Picture',
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              const Divider(),
+              ListTile(
+                leading: const Icon(Icons.camera_alt_outlined),
+                title: Text(
+                  'Take Photo',
+                  style: GoogleFonts.poppins(),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library_outlined),
+                title: Text(
+                  'Choose from Gallery',
+                  style: GoogleFonts.poppins(),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.gallery);
+                },
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
@@ -75,23 +206,62 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Container(
-                      width: 72,
-                      height: 72,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                            color: const Color(0xFFD4AF37), width: 2),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.15),
-                            blurRadius: 8,
-                          ),
-                        ],
-                      ),
-                      child: ClipOval(
-                        child: user?.photoURL != null
-                            ? Image.network(
+                    GestureDetector(
+                      onTap: _showImagePickerOptions,
+                      child: Container(
+                        width: 72,
+                        height: 72,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                              color: const Color(0xFFD4AF37), width: 2),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.15),
+                              blurRadius: 8,
+                            ),
+                          ],
+                        ),
+                        child: ClipOval(
+                          child: Stack(
+                            children: [
+                            if (_localImagePath != null)
+                              if (kIsWeb)
+                                Image.network(
+                                  _localImagePath!,
+                                  width: 72,
+                                  height: 72,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return ColoredBox(
+                                      color: Colors.white,
+                                      child: Icon(
+                                        Icons.person_rounded,
+                                        size: 42,
+                                        color: AppColors.primary.withValues(alpha: 0.85),
+                                      ),
+                                    );
+                                  },
+                                )
+                              else
+                                Image.file(
+                                    File(_localImagePath!),
+                                    width: 72,
+                                    height: 72,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return ColoredBox(
+                                        color: Colors.white,
+                                        child: Icon(
+                                          Icons.person_rounded,
+                                          size: 42,
+                                          color: AppColors.primary.withValues(alpha: 0.85),
+                                        ),
+                                      );
+                                    },
+                                )
+                            else if (user?.photoURL != null)
+                              Image.network(
                                 user!.photoURL!,
                                 width: 72,
                                 height: 72,
@@ -107,7 +277,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   );
                                 },
                               )
-                            : ColoredBox(
+                            else
+                              ColoredBox(
                                 color: Colors.white,
                                 child: Icon(
                                   Icons.person_rounded,
@@ -115,6 +286,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   color: AppColors.primary.withValues(alpha: 0.85),
                                 ),
                               ),
+                            Positioned(
+                              bottom: 0,
+                              right: 0,
+                              child: Container(
+                                width: 20,
+                                height: 20,
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: Colors.white, width: 2),
+                                ),
+                                child: Icon(
+                                  Icons.camera_alt,
+                                  size: 12,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ]),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 14),
@@ -235,58 +426,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   child: Column(
                     children: [
-                      _MenuTile(
-                        icon: Icons.calendar_today_outlined,
-                        label: 'My Registered Events',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const RegisteredEventsScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      const Divider(height: 1),
-                      _MenuTile(
-                        icon: Icons.bookmark_border_rounded,
-                        label: 'Saved Schedules',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const SavedSchedulesScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      const Divider(height: 1),
-                      _MenuTile(
-                        icon: Icons.settings_suggest_outlined,
-                        label: 'Calendar Preferences',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const CalendarPreferencesScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      const Divider(height: 1),
-                      _MenuTile(
-                        icon: Icons.notifications_outlined,
-                        label: 'Notification Settings',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const NotificationSettingsScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      const Divider(height: 1),
                       _MenuTile(
                         icon: Icons.settings_outlined,
                         label: 'Settings',

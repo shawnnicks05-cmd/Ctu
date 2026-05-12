@@ -26,6 +26,9 @@ class CalendarEventIcon extends StatelessWidget {
         return Icons.theater_comedy_rounded;
       case EventCategory.administrative:
         return Icons.admin_panel_settings_rounded;
+      case EventCategory.enrollment:
+        // TODO: Handle this case.
+        throw UnimplementedError();
     }
   }
 
@@ -84,7 +87,8 @@ class CalendarEventListCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border(left: BorderSide(color: event.category.color, width: 4)),
+          border:
+              Border(left: BorderSide(color: event.category.color, width: 4)),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.05),

@@ -7,7 +7,8 @@ enum EventCategory {
   academic('Academic', Colors.blue),
   sports('Sports', Colors.purple),
   cultural('Cultural', Colors.teal),
-  administrative('Administrative', Colors.grey);
+  administrative('Administrative', Colors.grey),
+  enrollment('Enrollment', Colors.amber);
 
   const EventCategory(this.displayName, this.color);
   final String displayName;

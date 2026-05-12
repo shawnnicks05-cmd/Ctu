@@ -40,7 +40,7 @@ Future<void> main() async {
   CTUCalendarService().initializeEvents();
   await NotificationService().initialize();
   await AutofillService().initialize();
-//nawsh
+
   runApp(const MyApp());
 }
 
@@ -64,10 +64,7 @@ class _MyAppState extends State<MyApp> {
   Future<void> _initializeApp() async {
     try {
       // Firebase is already initialized in main()
-      // Initialize other services (only if not already initialized in main)
-      CTUCalendarService().initializeEvents();
-      await NotificationService().initialize();
-      // Note: AutofillService is already initialized in main()
+      // Calendar service is already initialized in main()
 
       // Add a small delay to ensure loading screen is visible
       await Future.delayed(const Duration(milliseconds: 500));
